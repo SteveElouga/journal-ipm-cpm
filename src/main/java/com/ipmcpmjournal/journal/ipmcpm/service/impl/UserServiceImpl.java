@@ -81,6 +81,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    public User getUserOAuthByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(
+                ()-> new ResourceNotFoundException("User is not exist with given email: " + email)
+        );
+        return user;
+    }
+
+    @Override
     public List<UserDto> getAllUsers() {
         List<User> users = userRepository.findAll();
 

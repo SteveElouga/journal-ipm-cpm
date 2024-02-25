@@ -76,13 +76,16 @@ public class ConfigurationSecuriteApplication {
                                     .anyRequest().authenticated();
                         }
                 )
-                .oauth2Login(Customizer.withDefaults())
-                .formLogin(
-                        login -> login
-                                .loginProcessingUrl("/api/users/connexion")
-                                .permitAll()
+                .oauth2Login(
+                        oauth2 -> oauth2
                                 .defaultSuccessUrl("/api/users/callBackUri")
                 )
+//                .formLogin(
+//                        login -> login
+//                                .loginProcessingUrl("/api/users/connexion")
+//                                .permitAll()
+//                                .defaultSuccessUrl("/api/users/callBackUri")
+//                )
                 .sessionManagement(httpSecuritySessionManagementConfigurer ->
                         httpSecuritySessionManagementConfigurer
                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)

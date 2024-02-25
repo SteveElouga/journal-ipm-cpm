@@ -1,5 +1,6 @@
 package com.ipmcpmjournal.journal.ipmcpm.controller;
 
+import com.ipmcpmjournal.journal.ipmcpm.mapper.UserMapper;
 import com.ipmcpmjournal.journal.ipmcpm.model.SetRole;
 import com.ipmcpmjournal.journal.ipmcpm.model.User;
 import com.ipmcpmjournal.journal.ipmcpm.outil.TypeDeRole;
@@ -18,8 +19,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,16 +27,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -58,22 +54,51 @@ public class UserController {
     private ValidationService validationService;
 
     @GetMapping(path = "callBackUri")
-    public ResponseEntity<Map<String,String>> callBackUri(){
+    public ResponseEntity<UserDto> callBackUri(@AuthenticationPrincipal OAuth2User authentication){
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         log.info("callBackUri");
-        log.info(String.valueOf(authentication.isAuthenticated()));
-        log.info(authentication.getPrincipal().getClass().getName());
+        log.info(authentication.getAttributes().toString());
+        log.info(authentication.getAuthorities().toString());
 
 
         Map<String, String> response = new HashMap<>();
-        response.put("details", authentication.getDetails().toString());
+        response.put("details", authentication.getClass().getName());
+        response.put("UserInformations", authentication.getAuthorities().toString());
+        response.put("principal", authentication.getAttributes().toString());
+        response.put("email", authentication.getAttribute("email"));
+        response.put("name", authentication.getAttribute("name"));
 
         ResponseEntity<Map<String,String>> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
 
+        log.info("Inscription");
 
-        return responseEntity;
+        UserDto user = new UserDto();
+
+        user.setEmail(authentication.getAttribute("email"));
+        user.setLastname(authentication.getAttribute("family_name"));
+        user.setFirstname(authentication.getAttribute("given_name"));
+        user.setPassword("");
+
+        user.setRole(
+                Role.builder()
+                        .libelle(TypeDeRole.USER)
+                        .build()
+        );
+
+        System.out.println(user);
+
+        UserDto savedUser = userService.createUser(user);
+
+
+        User user1 = userService.getUserOAuthByEmail(user.getEmail());
+        user1.setActif(true);
+        final UserDto userDto = UserMapper.mapToUserDto(user1);
+
+        userService.updateUser(user1.getId(), userDto);
+        System.out.println(user1.hashCode());
+
+        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
 
 

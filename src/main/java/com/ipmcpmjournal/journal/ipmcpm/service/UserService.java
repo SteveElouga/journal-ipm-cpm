@@ -1,6 +1,7 @@
 package com.ipmcpmjournal.journal.ipmcpm.service;
 
 import com.ipmcpmjournal.journal.ipmcpm.dto.UserDto;
+import com.ipmcpmjournal.journal.ipmcpm.model.User;
 
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,8 @@ public interface UserService {
     UserDto getUserById(Long userId);
 
     UserDto getUserByEmail(String email);
+
+    User getUserOAuthByEmail(String email);
 
     List<UserDto> getAllUsers();
 
